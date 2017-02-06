@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>5MOF - selfhosted projects</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Hakim El Hattab">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css" id="theme">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+
+			<div class="slides">
+				<section>
+					<h1>Selfhosted Projects</h1>
+				</section>
+
+				<section>
+					<h2>What's it about?</h2>
+					<ul>
+						<li class="fragment">not about virtual build machines</li>
+						<li class="fragment">not about Docker</li>
+						<li class="fragment">about a project setup thats maintainable by all developers</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>requirements for a software project</h2>
+					<ul>
+						<li class="fragment">every developer in the team can produce artefacts (CI, Staging, Production)</li>
+						<li class="fragment">build system executes on every dev machine</li>
+						<li class="fragment">Jenkins/Travis executes debugable/reproduceable build code</li>
+						<li class="fragment">The build system is part of the project</li>
+						<li class="fragment">Jenkins/Travis can build past and feature versions without config change</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>problems we might face with these requirements</h2>
+					<ul>
+						<li class="fragment">dependencies [solved]</li>
+						<li class="fragment">jenkins setup</li>
+						<li class="fragment">credencials</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Jenkins setup</h2>
+				</section>
+
+				<section>
+					<h2>Credentials</h2>
+					<p><i>How to share and maintain credentials in the team?</i></p>
+				</section>
+
+				<section>
+					<h2>provisioning profiles</h2>
+				</section>
+
+				<section>
+					<h2>other credentials</h2>
+				</section>
+
+				<section>
+					<h3>Meet Lanyard</h3>
+					<p>Small helper gem for the keychain handling <a href="https://github.com/wooga/lanyard">https://github.com/wooga/lanyard</a></p>
+
+					<section>
+						<h4>contians</h4>
+						<ul>
+							<li class="fragment">cli tool</li>
+							<li class="fragment">ruby module with helper functions</li>
+							<li class="fragment">simple security tool wrapper</li>
+							<li class="fragment">rake task creator</li>
+						</ul>
+					</section>
+					<section>
+						<h4>cli</h4>
+						<pre><code data-trim class="bash">
+Usage:
+  lanyard use-keychain [options] (&lt;keychain&gt; &lt;password&gt;)...
+  lanyard unuse-keychain &lt;keychain&gt;...
+  lanyard (-h | --help)
+						</code></pre>
+					</section>
+					<section>
+						<h4>rake simple</h4>
+						<pre><code data-trim class="ruby">
+require 'rake/lanyard_task'
+
+lanyard = Rake::LanyardTask.new
+						</code></pre>
+					</section>
+					<section>
+						<h4>rake enhanced</h4>
+						<pre><code data-trim class="ruby">
+require 'rake/lanyard_task'
+
+lanyard = Rake::LanyardTask.new { |t|
+    t.namespace_name = :keychain
+    t.keychain_path = "path/to/keychain-copy.keychain"
+    t.keychain_password = "keychain password"
+    t.copy_keychain_from "path/to/keychain.keychain"
+}
+						</code></pre>
+					</section>
+				</section>
+
+				<section>
+					<h1>Thanks</h1>
+				</section>
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: false,
+				progress: true,
+				history: true,
+				center: true,
+
+				transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>

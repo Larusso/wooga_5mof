@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>5MOF - refactor from the outside</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Hakim El Hattab">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css" id="theme">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+
+			<div class="slides">
+				<section>
+					<h1>Refactor from the outside</h1>
+				</section>
+
+				<section>
+					<h2>The Problem</h2>
+				</section>
+
+				<section>
+					<h1>I</h1>
+					<p><i>The before state</i></p>
+				</section>
+
+				<section>
+					<h2>Anatomie of menu states config</h2>
+					<pre><code data-trim class="json">
+{
+	"hudViewController": {},
+	"screens": {},
+	"overlays": {},
+	"transitions": []
+}
+					</code></pre>
+				</section>
+
+				<section>
+						<h2>Transition</h2>
+						<pre><code data-trim class="json">
+from --> to --> with event
+						</code></pre>
+				</section>
+
+				<section>
+					<section>
+						<h3>MenuStates.json</h3>
+						<p>syntax to declare a transition</p>
+						<pre><code data-trim class="json">
+{ "from": "Map", "event": "EventButtonOptions", "to": "NADS>Map" },
+{ "from": "NADS>Map", "event": "EventButtonBack", "to": "Map" },
+						</code></pre>
+
+					</section>
+
+					<section data-background="#ae2142">
+						<h3>MenuStates.json</h3>
+						<pre><code data-trim class="json">
+"transitions": [
+{ "from": "FacebookNag>Map" , "event": "EventButtonBack" , "to": "Map" },
+{ "from": "FacebookNagJapanFan>Gate>Map" , "event": "EventButtonBack" , "to": "Gate>Map" },
+{ "from": "FacebookNagJapanFan>GetMoreLives>LevelDetailsBoost" , "event": "EventButtonBack" , "to": "GetMoreLives>LevelDetailsBoost" },
+{ "from": "FacebookNagJapanFan>GetMoreLives>LevelDetails" , "event": "EventButtonBack" , "to": "GetMoreLives>LevelDetails" },
+{ "from": "FacebookNagJapanFan>GetMoreLives>Map" , "event": "EventButtonBack" , "to": "GetMoreLives>Map" },
+{ "from": "FacebookNagJapanFan>GetMoreLives>Spinner>GameBoost" , "event": "EventButtonBack" , "to": "GetMoreLives>Spinner>GameBoost" },
+{ "from": "FacebookNagJapanFan>GetMoreLives>Spinner>Game" , "event": "EventButtonBack" , "to": "GetMoreLives>Spinner>Game" },
+{ "from": "FacebookNagJapanFan>Map" , "event": "EventButtonBack" , "to": "Map" },
+...
+]
+						</code></pre>
+						<p>519 lines of configuration. <span class="fragment highlight-red">313 lines</span> with transitions</p>
+					</section>
+				</section>
+
+				<section>
+					<h1>II</h1>
+					<p><i>First iteration</i></p>
+					<p>Get rid of the repetition.</br>Proof that the idea of a shorter config works.</p>
+				</section>
+
+				<section>
+					<h2>The idea</h2>
+					<ul>
+						<li>Use wildcards in configuration to reduce repetition.</li>
+						<li>Generate original config out of condensed version as proof.</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Execution</h2>
+					<p>A small ruby commandline script that converts the condensed version into the normal json format.</p>
+					<pre><code data-trim>
+expand_menu_flow_config - expand wildcards in menu flow configuration
+
+Usage:
+  expand_menu_flow_config [--output=OUT] [&lt;config&gt;]
+  expand_menu_flow_config (-h | --help)
+
+Options:
+  --output=OUT   file to output
+					</code></pre>
+				</section>
+
+				<section>
+					<section>
+						<h3>MenuStates.json</h3>
+						<p>Shorter syntax with use of matching and control operators</p>
+						<pre><code data-trim class="json">
+{ "from": "Map" , "event": "EventButtonOptions" , "to": "NADS>+" },
+{ "from": "NADS>*" , "event": "EventButtonBack" , "to": "-" },
+						</code></pre>
+					</section>
+
+					<section>
+						<h3>MenuStates.json</h3>
+						<p>this:</p>
+						<pre class="fragment fade-in"><code data-trim class="json">
+"transitions": [
+{ "from": "FacebookNag>Map" , "event": "EventButtonBack" , "to": "Map" },
+{ "from": "FacebookNagJapanFan>Gate>Map" , "event": "EventButtonBack" , "to": "Gate>Map" },
+{ "from": "FacebookNagJapanFan>GetMoreLives>LevelDetailsBoost" , "event": "EventButtonBack" , "to": "GetMoreLives>LevelDetailsBoost" },
+{ "from": "FacebookNagJapanFan>GetMoreLives>LevelDetails" , "event": "EventButtonBack" , "to": "GetMoreLives>LevelDetails" },
+{ "from": "FacebookNagJapanFan>GetMoreLives>Map" , "event": "EventButtonBack" , "to": "GetMoreLives>Map" },
+{ "from": "FacebookNagJapanFan>GetMoreLives>Spinner>GameBoost" , "event": "EventButtonBack" , "to": "GetMoreLives>Spinner>GameBoost" },
+{ "from": "FacebookNagJapanFan>GetMoreLives>Spinner>Game" , "event": "EventButtonBack" , "to": "GetMoreLives>Spinner>Game" },
+{ "from": "FacebookNagJapanFan>Map" , "event": "EventButtonBack" , "to": "Map" },
+...
+]
+						</code></pre>
+					</section>
+
+					<section>
+						<h3>MenuStates.json</h3>
+						<p>becomes:</p>
+						<pre class="fragment fade-in"><code data-trim class="json">
+"transitions": [
+{ "from": "FacebookNag>*" , "event": "EventButtonBack" , "to": "-" },
+{ "from": "FacebookNagJapanFan>*" , "event": "EventButtonBack" , "to": "-" },
+...
+]
+						</code></pre>
+						<p class="fragment fade-in">358 lines of configuration. 151 lines with transitions</p>
+						<p class="fragment fade-in">~50% less transitions</p>
+					</section>
+
+				</section>
+
+				<section>
+					<h2>Problem?</h2>
+					<p>Config still hard to read and maintain.</p>
+				</section>
+
+				<section>
+					<h1>III</h1>
+					<p><i>Second iteration</i></p>
+					<p>A small dsl that makes the config more readable.</p>
+				</section>
+
+				<section>
+					<h2>The idea</h2>
+					<ul>
+						<li>Create a small domain specigic language.</li>
+						<li>Generate the condensed or final version of the configuration.</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Execution</h2>
+					<p>A second ruby script that transforms the dsl config into json and expands the wildcards.</p>
+					<pre><code data-trim>
+generate_menu_flow_config - generate menu flow configuration
+
+Usage:
+  generate_menu_flow_config [--no-expand] [--output=OUT] [&lt;config&gt;]
+  generate_menu_flow_config (-h | --help)
+
+Options:
+  --output=OUT   file to output
+					</code></pre>
+				</section>
+
+				<section>
+					<h3>MenuStates.rb</h3>
+					<p>More condensed dsl writen in ruby.</p>
+					<pre><code data-trim class="py">
+transition from: 'Map', push: 'NADS', withEvent: 'EventButtonOptions'
+transition from: 'NADS>*', pop: :overlay, withEvent: 'EventButtonBack'
+					</code></pre>
+				</section>
+
+				<section>
+					<h1>IV</h1>
+					<p><i>integration in rake</i></p>
+				</section>
+
+				<section>
+					<h2>Rake</h2>
+					<p>A new rake task and file rule to generate the json files when needed.</p>
+					<pre><code data-trim class="rake">
+require 'rake/clean'
+
+namespace :menuflow do
+	MENUFLOW_FILES = Rake::FileList.new(File.join(PROJECT_DIR, 'PuzzleLines','PuzzleLines','MenuFlow','MenuStates', '*.rb'))
+
+	desc "generate menuflow configuration"
+	task :generate => MENUFLOW_FILES.ext('.json')
+
+	CLEAN.include(MENUFLOW_FILES.ext('.json'))
+
+	rule ".json" => ".rb" do |t|
+  	call "generate_menu_flow_config --output=#{t.name} #{t.source}"
+	end
+end
+					</code></pre>
+				</section>
+
+				<section>
+					<h1>Conclusion</h1>
+					<ul>
+						<li>no code changes in obj-c</li>
+						<li>proof that changes are no danger to the client</li>
+						<li>we can still adjust the dsl without fear of bracking the client</li>
+						<li>its still possible to generate the files at runtime</li>
+					</ul>
+				</section>
+
+				<section>
+					<h1>Thanks</h1>
+				</section>
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: false,
+				progress: true,
+				history: true,
+				center: true,
+
+				transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
